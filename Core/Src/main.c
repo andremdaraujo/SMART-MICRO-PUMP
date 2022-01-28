@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "global.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,10 +105,12 @@ void SystemClock_Config(void);
 int main(void)
 {
 	/* USER CODE BEGIN 1 */
-	uint32_t* heap_pointer;
 
-	volatile uint32_t uninit_var;
-	volatile uint32_t init_var = 0xCC55;
+// Homework 8
+//	uint32_t* heap_pointer;
+//
+//	volatile uint32_t uninit_var;
+//	volatile uint32_t init_var = 0xCC55;
 
 	enum op_mode mode = manual_mode;
 
@@ -141,31 +144,32 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
 
-	sprintf(uartTXbuf, "MES Exercise 8: \n");
-	UART_TX(uartTXbuf);
-
-	sprintf(uartTXbuf,
-			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
-			((unsigned int)reg_SP));
-	UART_TX(uartTXbuf);
-
-	heap_pointer = malloc(10 * sizeof(uint32_t));
-
-	sprintf(uartTXbuf,
-			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
-			((unsigned int)heap_pointer));
-	UART_TX(uartTXbuf);
-
-	free(heap_pointer);
-
-	sprintf(uartTXbuf,
-			"Global variable 'toggleGreenLED' address: 0x%08X \n",
-			((unsigned int)&toggleGreenLED));
-	UART_TX(uartTXbuf);
-
-	uninit_var = init_var * 2;
-	init_var = 0xAA33;
-	uninit_var = uninit_var + init_var;
+// Homework 08
+//	sprintf(uartTXbuf, "MES Exercise 8: \n");
+//	UART_TX(uartTXbuf);
+//
+//	sprintf(uartTXbuf,
+//			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
+//			((unsigned int)reg_SP));
+//	UART_TX(uartTXbuf);
+//
+//	heap_pointer = malloc(10 * sizeof(uint32_t));
+//
+//	sprintf(uartTXbuf,
+//			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
+//			((unsigned int)heap_pointer));
+//	UART_TX(uartTXbuf);
+//
+//	free(heap_pointer);
+//
+//	sprintf(uartTXbuf,
+//			"Global variable 'toggleGreenLED' address: 0x%08X \n",
+//			((unsigned int)&toggleGreenLED));
+//	UART_TX(uartTXbuf);
+//
+//	uninit_var = init_var * 2;
+//	init_var = 0xAA33;
+//	uninit_var = uninit_var + init_var;
 
   /* USER CODE END 2 */
 
@@ -184,12 +188,12 @@ int main(void)
 			if (mode == manual_mode)
 			{
 				mode = auto_mode;
-				//HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 			}
 			else if (mode == auto_mode)
 			{
 				mode = manual_mode;
-				//HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 			}
 			debouncedButtonPressed = 0;
 		}
@@ -199,10 +203,10 @@ int main(void)
 			debouncedButtonReleased = 0;
 		}
 
-		if (toggleGreenLED != 0)			// Green LED blinks at 2Hz
-		{									// according to Timer 7 interrupts
-			//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
-			toggleGreenLED = 0;
+		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+		{					// according to Timer 7 interrupts
+			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
+			flag_dt = 0;
 		}
 	}
   /* USER CODE END 3 */
