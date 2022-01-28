@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
+#include "tim.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -66,5 +67,14 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == BUTTON_USER_Pin)		// When edge is detected,
+	{									//	Timer 6 starts, for button debounce
+		//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+		HAL_TIM_Base_Start_IT(&htim6);
+	}
+}
 
 /* USER CODE END 2 */

@@ -21,7 +21,7 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "global.h"
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim4;
@@ -267,5 +267,45 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim == &htim6)	// Timed debounce routine:
+	{					//	After first edge is detected, accumulate
+						// 	DEBOUNCE_STABLE_PERIOD equal samples and
+						// 	finally set PRESSED or RELEASED flag and
+						//	disables this counter until next edge occurs
+		previousButton = currentButton;
+		currentButton  = HAL_GPIO_ReadPin(BUTTON_USER_GPIO_Port, BUTTON_USER_Pin);
+
+		if (currentButton == previousButton)	// Increments counter if stable
+		{
+			debounceCounter++;
+		}
+		else									// Resets counter if bounce occurs
+		{
+			debounceCounter = 0;
+		}
+
+		if (debounceCounter >= DEBOUNCE_STABLE_PERIOD)
+		{	// Debounce finished
+			HAL_TIM_Base_Stop_IT(&htim6);
+			debounceCounter = 0;
+
+			if (currentButton == 1)			// Active HIGH: Button Pressed == 1
+			{
+				debouncedButtonPressed = 1;
+			}
+			else
+			{
+				debouncedButtonReleased = 1;
+			}
+		}
+	}
+	else if (htim == &htim7)	// Timed Green LED blinky
+	{
+		//toggleGreenLED = 1;		// Toggles LED every 250 ms, one cycle every 500 ms (2 Hz)
+	}
+}
 
 /* USER CODE END 1 */

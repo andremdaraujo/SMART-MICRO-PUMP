@@ -38,6 +38,8 @@ extern TIM_HandleTypeDef htim7;
 
 /* USER CODE BEGIN Private defines */
 
+#define DEBOUNCE_STABLE_PERIOD 10				// Debounce period [ms]
+
 /* USER CODE END Private defines */
 
 void MX_TIM4_Init(void);
@@ -47,6 +49,8 @@ void MX_TIM7_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 /* USER CODE END Prototypes */
 

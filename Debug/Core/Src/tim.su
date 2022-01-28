@@ -4,3 +4,4 @@ tim.c:119:6:MX_TIM7_Init	16	static
 tim.c:152:6:HAL_TIM_Base_MspInit	32	static
 tim.c:197:6:HAL_TIM_MspPostInit	40	static
 tim.c:225:6:HAL_TIM_Base_MspDeInit	16	static
+tim.c:271:6:HAL_TIM_PeriodElapsedCallback	16	static

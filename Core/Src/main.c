@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "global.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,7 +65,7 @@ enum op_mode {manual_mode = 0, auto_mode = 1, debug_mode = 2};
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBOUNCE_STABLE_PERIOD 10				// Debounce period [ms]
+
 
 /* USER CODE END PD */
 
@@ -77,16 +78,7 @@ enum op_mode {manual_mode = 0, auto_mode = 1, debug_mode = 2};
 
 /* USER CODE BEGIN PV */
 
-// Global Variables
-volatile uint8_t  toggleGreenLED = 0;			// Flags for toggling LEDs on main loop
-volatile uint8_t  toggleBlueLED  = 0;			//
 
-volatile uint8_t currentButton  = 0;			// Variables to store button states
-volatile uint8_t previousButton = 0;			//
-
-volatile uint16_t debounceCounter = 0;			// Variables for button debounce
-volatile uint8_t  debouncedButtonPressed  = 0;	//
-volatile uint8_t  debouncedButtonReleased = 0;	//
 
 register uint32_t* reg_SP __asm("sp");			// Stack Pointer
 
@@ -116,6 +108,9 @@ int main(void)
 
 	volatile uint32_t uninit_var;
 	volatile uint32_t init_var = 0xCC55;
+
+	enum op_mode mode = manual_mode;
+
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -183,6 +178,32 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 		HAL_Delay(500);
+
+		if (debouncedButtonPressed != 0)	// User button selects between
+		{									// Manual and Auto modes
+			if (mode == manual_mode)
+			{
+				mode = auto_mode;
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+			}
+			else if (mode == auto_mode)
+			{
+				mode = manual_mode;
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+			}
+			debouncedButtonPressed = 0;
+		}
+
+		if (debouncedButtonReleased != 0)	// Interrupts are also generated when
+		{									// button is released
+			debouncedButtonReleased = 0;
+		}
+
+		if (toggleGreenLED != 0)			// Green LED blinks at 2Hz
+		{									// according to Timer 7 interrupts
+			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
+			toggleGreenLED = 0;
+		}
 	}
   /* USER CODE END 3 */
 }
