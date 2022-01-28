@@ -21,7 +21,9 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
+
 #include "global.h"
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim4;
@@ -278,6 +280,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		previousButton = currentButton;
 		currentButton  = HAL_GPIO_ReadPin(BUTTON_USER_GPIO_Port, BUTTON_USER_Pin);
 
+		HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+		//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
 		if (currentButton == previousButton)	// Increments counter if stable
 		{
 			debounceCounter++;
@@ -290,6 +295,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if (debounceCounter >= DEBOUNCE_STABLE_PERIOD)
 		{	// Debounce finished
 			HAL_TIM_Base_Stop_IT(&htim6);
+			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 			debounceCounter = 0;
 
 			if (currentButton == 1)			// Active HIGH: Button Pressed == 1
@@ -302,9 +308,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			}
 		}
 	}
-	else if (htim == &htim7)	// Timed Green LED blinky
+	else if (htim == &htim7)	//
 	{
-		//toggleGreenLED = 1;		// Toggles LED every 250 ms, one cycle every 500 ms (2 Hz)
+		//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 	}
 }
 

@@ -176,20 +176,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-		HAL_Delay(500);
+		//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+		//HAL_Delay(500);
 
 		if (debouncedButtonPressed != 0)	// User button selects between
 		{									// Manual and Auto modes
 			if (mode == manual_mode)
 			{
 				mode = auto_mode;
-				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				//HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 			}
 			else if (mode == auto_mode)
 			{
 				mode = manual_mode;
-				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				//HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 			}
 			debouncedButtonPressed = 0;
 		}
@@ -201,7 +201,7 @@ int main(void)
 
 		if (toggleGreenLED != 0)			// Green LED blinks at 2Hz
 		{									// according to Timer 7 interrupts
-			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
+			//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
 			toggleGreenLED = 0;
 		}
 	}
