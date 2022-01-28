@@ -116,4 +116,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
+void UART_TX(char* buffer)
+{
+	HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
+}
+
 /* USER CODE END 1 */

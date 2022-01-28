@@ -50,6 +50,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -110,50 +111,66 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-	uint32_t test_var = 1024;
-  /* USER CODE END 1 */
+	/* USER CODE BEGIN 1 */
+	uint32_t* heap_pointer;
 
-  /* MCU Configuration--------------------------------------------------------*/
+	volatile uint32_t uninit_var;
+	volatile uint32_t init_var = 0xCC55;
+	/* USER CODE END 1 */
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* USER CODE BEGIN Init */
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE END Init */
+	/* USER CODE BEGIN Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* USER CODE END Init */
 
-  /* USER CODE BEGIN SysInit */
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE END SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_ADC_Init();
-  MX_TIM4_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
-  MX_USART1_UART_Init();
-  /* USER CODE BEGIN 2 */
+	/* USER CODE END SysInit */
+
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_ADC_Init();
+	MX_TIM4_Init();
+	MX_TIM6_Init();
+	MX_TIM7_Init();
+	MX_USART1_UART_Init();
+	/* USER CODE BEGIN 2 */
 
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
 
 	sprintf(uartTXbuf, "MES Exercise 8: \n");
-	HAL_UART_Transmit(&huart1, uartTXbuf, strlen(uartTXbuf), HAL_MAX_DELAY);
+	UART_TX(uartTXbuf);
 
 	sprintf(uartTXbuf,
-			"Global var 'toggleGreenLED' address: 0x%08X \n",
-			&toggleGreenLED);
-	HAL_UART_Transmit(&huart1, uartTXbuf, strlen(uartTXbuf), HAL_MAX_DELAY);
+			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
+			((unsigned int)reg_SP));
+	UART_TX(uartTXbuf);
+
+	heap_pointer = malloc(10 * sizeof(uint32_t));
 
 	sprintf(uartTXbuf,
-			"Stack Pointer Register 'reg_SP' value: 0x%08X \n",
-			((uint32_t)reg_SP));
-	HAL_UART_Transmit(&huart1, uartTXbuf, strlen(uartTXbuf), HAL_MAX_DELAY);
+			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
+			((unsigned int)heap_pointer));
+	UART_TX(uartTXbuf);
+
+	free(heap_pointer);
+
+	sprintf(uartTXbuf,
+			"Global variable 'toggleGreenLED' address: 0x%08X \n",
+			((unsigned int)&toggleGreenLED));
+	UART_TX(uartTXbuf);
+
+	uninit_var = init_var * 2;
+	init_var = 0xAA33;
+	uninit_var = uninit_var + init_var;
 
   /* USER CODE END 2 */
 
