@@ -104,72 +104,71 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 
 // Homework 8
-//	uint32_t* heap_pointer;
-//
-//	volatile uint32_t uninit_var;
-//	volatile uint32_t init_var = 0xCC55;
+	uint32_t* heap_pointer;
+
+
 
 	enum op_mode mode = manual_mode;
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_ADC_Init();
-	MX_TIM4_Init();
-	MX_TIM6_Init();
-	MX_TIM7_Init();
-	MX_USART1_UART_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_ADC_Init();
+  MX_TIM4_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
+  MX_USART1_UART_Init();
+  /* USER CODE BEGIN 2 */
 
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
 
 // Homework 08
-//	sprintf(uartTXbuf, "MES Exercise 8: \n");
-//	UART_TX(uartTXbuf);
-//
-//	sprintf(uartTXbuf,
-//			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
-//			((unsigned int)reg_SP));
-//	UART_TX(uartTXbuf);
-//
-//	heap_pointer = malloc(10 * sizeof(uint32_t));
-//
-//	sprintf(uartTXbuf,
-//			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
-//			((unsigned int)heap_pointer));
-//	UART_TX(uartTXbuf);
-//
-//	free(heap_pointer);
-//
-//	sprintf(uartTXbuf,
-//			"Global variable 'toggleGreenLED' address: 0x%08X \n",
-//			((unsigned int)&toggleGreenLED));
-//	UART_TX(uartTXbuf);
-//
-//	uninit_var = init_var * 2;
-//	init_var = 0xAA33;
-//	uninit_var = uninit_var + init_var;
+	sprintf(uartTXbuf, "MES Exercise 8: \n");
+	UART_TX(uartTXbuf);
+
+	sprintf(uartTXbuf,
+			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
+			((unsigned int)reg_SP));
+	UART_TX(uartTXbuf);
+
+	heap_pointer = malloc(10 * sizeof(uint32_t));
+
+	sprintf(uartTXbuf,
+			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
+			((unsigned int)heap_pointer));
+	UART_TX(uartTXbuf);
+
+	free(heap_pointer);
+
+	sprintf(uartTXbuf,
+			"Global variable 'toggleGreenLED' address: 0x%08X \n",
+			((unsigned int)&toggleGreenLED));
+	UART_TX(uartTXbuf);
+
+	uninit_var = init_var * 2;
+	init_var = 0xAA33;
+	uninit_var = uninit_var + init_var;
 
   /* USER CODE END 2 */
 
@@ -205,7 +204,7 @@ int main(void)
 
 		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{					// according to Timer 7 interrupts
-			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);	// Toggle Green LED
+			HAL_GPIO_TogglePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin);	// Toggle Green LED
 			flag_dt = 0;
 		}
 	}

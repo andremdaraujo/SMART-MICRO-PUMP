@@ -9,10 +9,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "main.h"
 #include "global.h"
 
+// Homework 8
+volatile uint32_t uninit_var;
+volatile uint32_t init_var = 0xCC55;
 
 // Global Variables
 volatile uint8_t  	toggleGreenLED = 0;			// Flags for toggling LEDs on main loop
@@ -24,3 +26,4 @@ volatile uint8_t  	debouncedButtonPressed  = 0;//
 volatile uint8_t  	debouncedButtonReleased = 0;//
 
 volatile uint8_t	flag_dt = 0;				// Sampling period (dt) elapsed flag
+
