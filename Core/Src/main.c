@@ -17,7 +17,7 @@
 //	reading for flow feedback.
 //
 //	TARGET:
-//		STM32L152RB (STM32L-Discovery Board)
+//		STM32L152RB ("STM32L-Discovery" Board)
 //
 // 	INPUTS:
 //		User Button:	PA0 	(Active high, rising and falling edges detection)
@@ -50,9 +50,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "global.h"
 #include "pid.h"
 
@@ -79,7 +81,7 @@ enum operation_mode {mode_manual = 0, mode_auto = 1, mode_debug = 2};
 
 /* USER CODE BEGIN PV */
 
-char TX_buffer[50];		// Buffer for TX data via UART
+
 
 /* USER CODE END PV */
 
@@ -135,6 +137,10 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
 
+	sprintf(tx_buffer, "Smart Micro Pump\n");
+	UART_TX(tx_buffer);
+	UART_RX(rx_buffer);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,10 +175,10 @@ int main(void)
 
 		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{					// according to Timer 7 interrupts
-			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
-			sprintf(TX_buffer, "100 Hz\n");
-			UART_TX(TX_buffer);
-			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+//			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+//			sprintf(TX_buffer, "100 Hz\n");
+//			UART_TX(TX_buffer);
+//			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
 			// Read data from sensors (ADC)
 

@@ -22,6 +22,10 @@
 
 /* USER CODE BEGIN 0 */
 #include "string.h"
+
+char tx_buffer[32];		// Buffer for TX data via UART
+char rx_buffer[32];		// Buffer for RX data via UART
+
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -119,6 +123,18 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 void UART_TX(char* buffer)
 {
 	HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
+}
+
+void UART_RX(char* buffer)
+{
+	HAL_UART_Receive_IT(&huart1, (uint8_t *)buffer, BYTES_TO_RX);
+}
+
+
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	UART_RX(rx_buffer);
 }
 
 /* USER CODE END 1 */
