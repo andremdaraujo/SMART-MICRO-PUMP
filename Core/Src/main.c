@@ -28,9 +28,10 @@
 //		DC Motor:		PB6		(PWM)
 //		Blue  LED:		PB6 	(PWM indication)
 //		Green LED:		PB7 	(Mode indication)
+//		Test output:	PC0		(Timing verification using an oscilloscope)
 //
 //	PERIPHERALS:
-//		ADC:					Intenral ADC (3 channels)
+//		ADC:					Internal ADC (3 channels)
 //		PWM generation:			TIM4 	(fPWM =  10 kHz)
 //		Debounce timer:			TIM6 	(fDEB =   1 kHz)
 //		Sampling period timer:	TIM7 	(fS   = 100  Hz)
@@ -53,20 +54,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "global.h"
+#include "pid.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-enum op_mode {manual_mode = 0, auto_mode = 1, debug_mode = 2};
+enum operation_mode {mode_manual = 0, mode_auto = 1, mode_debug = 2};
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
-
 
 /* USER CODE END PD */
 
@@ -79,17 +79,14 @@ enum op_mode {manual_mode = 0, auto_mode = 1, debug_mode = 2};
 
 /* USER CODE BEGIN PV */
 
-
-
-register uint32_t* reg_SP __asm("sp");			// Stack Pointer
-
-char uartTXbuf[50];								// UART buffer for TX data
+char TX_buffer[50];		// Buffer for TX data via UART
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
+void SystemClock_Config(void);
 
 /* USER CODE END PFP */
 
@@ -106,12 +103,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-// Homework 8
-	uint32_t* heap_pointer;
-
-
-
-	enum op_mode mode = manual_mode;
+	enum operation_mode op_mode = mode_manual;
 
   /* USER CODE END 1 */
 
@@ -143,33 +135,6 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
 
-// Homework 08
-	sprintf(uartTXbuf, "MES Exercise 8: \n");
-	UART_TX(uartTXbuf);
-
-	sprintf(uartTXbuf,
-			"Stack Pointer Register \"reg_SP\" value: 0x%08X \n",
-			((unsigned int)reg_SP));
-	UART_TX(uartTXbuf);
-
-	heap_pointer = malloc(10 * sizeof(uint32_t));
-
-	sprintf(uartTXbuf,
-			"Heap Pointer \"heap_pointer\" value: 0x%08X \n",
-			((unsigned int)heap_pointer));
-	UART_TX(uartTXbuf);
-
-	free(heap_pointer);
-
-	sprintf(uartTXbuf,
-			"Global variable 'toggleGreenLED' address: 0x%08X \n",
-			((unsigned int)&toggleGreenLED));
-	UART_TX(uartTXbuf);
-
-	uninit_var = init_var * 2;
-	init_var = 0xAA33;
-	uninit_var = uninit_var + init_var;
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -184,14 +149,14 @@ int main(void)
 
 		if (debouncedButtonPressed != 0)	// User button selects between
 		{									// Manual and Auto modes
-			if (mode == manual_mode)
+			if (op_mode == mode_manual)
 			{
-				mode = auto_mode;
+				op_mode = mode_auto;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 			}
-			else if (mode == auto_mode)
+			else if (op_mode == mode_auto)
 			{
-				mode = manual_mode;
+				op_mode = mode_manual;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 			}
 			debouncedButtonPressed = 0;
@@ -204,7 +169,19 @@ int main(void)
 
 		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{					// according to Timer 7 interrupts
-			HAL_GPIO_TogglePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin);	// Toggle Green LED
+			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+			sprintf(TX_buffer, "100 Hz\n");
+			UART_TX(TX_buffer);
+			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+
+			// Read data from sensors (ADC)
+
+			// Calculate control action
+
+			// Update pump drive level (PWM)
+
+			// Send data (UART)
+
 			flag_dt = 0;
 		}
 	}
@@ -287,4 +264,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
