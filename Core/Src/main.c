@@ -57,6 +57,7 @@
 
 #include "global.h"
 #include "pid.h"
+#include "pwm.h"
 
 /* USER CODE END Includes */
 
@@ -86,6 +87,7 @@ enum operation_mode {mode_manual = 0, mode_auto = 1, mode_debug = 2};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 void SystemClock_Config(void);
@@ -106,6 +108,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
 	enum operation_mode op_mode = mode_manual;
+	uint16_t pulse = 0;
 
   /* USER CODE END 1 */
 
@@ -153,6 +156,7 @@ int main(void)
 		//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 		//HAL_Delay(500);
 
+		// Mode selection via user button (Manual/Auto)
 		if (debouncedButtonPressed != 0)	// User button selects between
 		{									// Manual and Auto modes
 			if (op_mode == mode_manual)
@@ -168,28 +172,54 @@ int main(void)
 			debouncedButtonPressed = 0;
 		}
 
-		if (debouncedButtonReleased != 0)	// Interrupts are also generated when
-		{									// button is released
-			debouncedButtonReleased = 0;
+//		if (debouncedButtonReleased != 0)	// Interrupts are also generated when
+//		{									// button is released
+//			debouncedButtonReleased = 0;
+//		}
+
+		if (op_mode == mode_manual)			// Manual mode:
+		{									// PWM duty cycle is set based on
+											// trimpot value read by the ADC
+			// To do
+
+			pulse++;				// Pulse Width sweep to test PWM generation
+			if (pulse == 1000)
+			{
+				pulse = 0;
+			}
+
+			PWM_setPulse(pulse);	// Updates duty cycle
+			HAL_Delay(5);
+		}
+		else if (op_mode == mode_auto)
+		{
+			// To do
+
+			if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+			{					// according to Timer 7 interrupts
+//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+//				sprintf(TX_buffer, "100 Hz\n");
+//				UART_TX(TX_buffer);
+//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+
+				// Read data from sensors (ADC)
+
+				// Calculate control action
+
+				// Update pump drive level (PWM)
+
+				// Send data (UART)
+
+				flag_dt = 0;
+			}
+
+		}
+		else if (op_mode == mode_debug)
+		{
+			// To do
 		}
 
-		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
-		{					// according to Timer 7 interrupts
-//			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
-//			sprintf(TX_buffer, "100 Hz\n");
-//			UART_TX(TX_buffer);
-//			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
-			// Read data from sensors (ADC)
-
-			// Calculate control action
-
-			// Update pump drive level (PWM)
-
-			// Send data (UART)
-
-			flag_dt = 0;
-		}
 	}
   /* USER CODE END 3 */
 }
@@ -270,3 +300,4 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+

@@ -120,17 +120,15 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-void UART_TX(char* buffer)
+void UART_TX(char* buffer)	// UART TX facade
 {
 	HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
 }
 
-void UART_RX(char* buffer)
+void UART_RX(char* buffer)	// UART RX facade
 {
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)buffer, BYTES_TO_RX);
 }
-
-
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
