@@ -22,3 +22,4 @@ volatile uint8_t  	debouncedButtonPressed  = 0;//
 volatile uint8_t  	debouncedButtonReleased = 0;//
 
 volatile uint8_t	flag_dt = 0;				// Sampling period (dt) elapsed flag
+volatile uint8_t	flag_EOC = 0;				// ADC End Of Conversion flag

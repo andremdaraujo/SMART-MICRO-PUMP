@@ -11,5 +11,6 @@ extern volatile uint8_t debouncedButtonPressed;
 extern volatile uint8_t debouncedButtonReleased;
 
 extern volatile uint8_t	flag_dt;
+extern volatile uint8_t	flag_EOC;
 
 #endif // __GLOBAL_H

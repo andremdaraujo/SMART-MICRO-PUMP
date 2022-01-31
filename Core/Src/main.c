@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -110,6 +111,14 @@ int main(void)
 	enum operation_mode op_mode = mode_manual;
 	uint16_t pulse = 0;
 
+	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];
+	//float ADC_voltages[ADC_ACTIVE_CHANNELS];
+	uint16_t ADC_mV[ADC_ACTIVE_CHANNELS];
+
+	uint16_t i = 0;
+
+
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -129,20 +138,35 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_ADC_Init();
-  MX_TIM4_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
-  MX_USART1_UART_Init();
+//  MX_GPIO_Init();
+//  MX_ADC_Init();
+//  MX_TIM4_Init();
+//  MX_TIM6_Init();
+//  MX_TIM7_Init();
+//  MX_DMA_Init();
+//  MX_USART1_UART_Init();
+//  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+	MX_GPIO_Init();
+	MX_TIM2_Init();
+	MX_TIM4_Init();
+	MX_TIM6_Init();
+	MX_TIM7_Init();
+	MX_DMA_Init();
+	MX_ADC_Init();
+	MX_USART1_UART_Init();
+
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
-	HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
+	//HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
+
+	HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
 
 	sprintf(tx_buffer, "Smart Micro Pump\n");
 	UART_TX(tx_buffer);
 	UART_RX(rx_buffer);
+
+	//HAL_ADC_Start(&hadc);
 
   /* USER CODE END 2 */
 
@@ -182,6 +206,9 @@ int main(void)
 											// trimpot value read by the ADC
 			// To do
 
+			HAL_TIM_Base_Stop(&htim2);
+			HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
+
 			pulse++;				// Pulse Width sweep to test PWM generation
 			if (pulse == 1000)
 			{
@@ -195,22 +222,54 @@ int main(void)
 		{
 			// To do
 
+			HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
+
+
 			if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 			{					// according to Timer 7 interrupts
 //				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+//				HAL_Delay(10);
+//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+
 //				sprintf(TX_buffer, "100 Hz\n");
 //				UART_TX(TX_buffer);
 //				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
 				// Read data from sensors (ADC)
 
-				// Calculate control action
+				//HAL_ADC_Start_DMA(&hadc, (uint32_t*)ADC_counts, ADC_ACTIVE_CHANNELS);
 
-				// Update pump drive level (PWM)
+				//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
-				// Send data (UART)
+
+
+
+
+
 
 				flag_dt = 0;
+			}
+
+			if (flag_EOC != 0)
+			{
+				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+				flag_EOC = 0;
+
+//				for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
+//				{
+//					//ADC_voltages[i] = ((float)ADC_counts[i]) * 3.3 / 4095.0;
+//					ADC_mV[i] = ADC_counts[i] * 3300 / 4095;
+//				}
+//
+//				// Calculate control action
+//
+//				// Update pump drive level (PWM)
+//
+//				// Send data (UART)
+//				sprintf(tx_buffer, "Trimpot: %d.%d V \n",
+//									(ADC_mV[2] / 1000),
+//									(ADC_mV[2] % 1000));
+//				//UART_TX(tx_buffer);
 			}
 
 		}
