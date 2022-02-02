@@ -36,7 +36,11 @@ extern ADC_HandleTypeDef hadc;
 
 /* USER CODE BEGIN Private defines */
 
-#define ADC_ACTIVE_CHANNELS	3
+#define ADC_ACTIVE_CHANNELS	5
+
+#define ADC_V_REF_mV		3000
+#define ADC_V_REF			3.000f
+#define ADC_MAX_COUNTS		4095
 
 /* USER CODE END Private defines */
 

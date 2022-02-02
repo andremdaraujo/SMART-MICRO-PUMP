@@ -21,7 +21,11 @@
 //
 // 	INPUTS:
 //		User Button:	PA0 	(Active high, rising and falling edges detection)
+//		Pump Current:	PA3
+//		Pump Flow:		PA4
+//		Trimpot	PA5
 //		UART RX:		PA10 	(Commands reception)
+//
 //
 //	OUTPUTS:
 //		UART TX:		PA9		(Data transmission)
@@ -32,9 +36,9 @@
 //
 //	PERIPHERALS:
 //		ADC:					Internal ADC (3 channels)
+//		Sampling period timer:	TIM2 	(fS   = 100  Hz)
 //		PWM generation:			TIM4 	(fPWM =  10 kHz)
 //		Debounce timer:			TIM6 	(fDEB =   1 kHz)
-//		Sampling period timer:	TIM7 	(fS   = 100  Hz)
 //		UART:					USART1	(baud = 115200 bps, 8N1)
 //
 //	Developed in STM32CubeIDE 1.8.0
@@ -112,7 +116,7 @@ int main(void)
 	uint16_t pulse = 0;
 
 	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];
-	//float ADC_voltages[ADC_ACTIVE_CHANNELS];
+	float ADC_voltages[ADC_ACTIVE_CHANNELS];
 	uint16_t ADC_mV[ADC_ACTIVE_CHANNELS];
 
 	uint16_t i = 0;
@@ -137,22 +141,20 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
+//  /* Initialize all configured peripherals */
 //  MX_GPIO_Init();
 //  MX_ADC_Init();
 //  MX_TIM4_Init();
 //  MX_TIM6_Init();
-//  MX_TIM7_Init();
 //  MX_DMA_Init();
 //  MX_USART1_UART_Init();
 //  MX_TIM2_Init();
-  /* USER CODE BEGIN 2 */
+//  /* USER CODE BEGIN 2 */
 
 	MX_GPIO_Init();
 	MX_TIM2_Init();
 	MX_TIM4_Init();
 	MX_TIM6_Init();
-	MX_TIM7_Init();
 	MX_DMA_Init();
 	MX_ADC_Init();
 	MX_USART1_UART_Init();
@@ -224,61 +226,51 @@ int main(void)
 
 			HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
 
+//			if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+//			{					// according to Timer 7 interrupts
+////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
+////				HAL_Delay(10);
+////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+//
+////				sprintf(TX_buffer, "100 Hz\n");
+////				UART_TX(TX_buffer);
+////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+//
+//				// Read data from sensors (ADC)
+//
+//				//HAL_ADC_Start_DMA(&hadc, (uint32_t*)ADC_counts, ADC_ACTIVE_CHANNELS);
+//
+//				//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+//
+//				flag_dt = 0;
+//			}
 
-			if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
-			{					// according to Timer 7 interrupts
-//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
-//				HAL_Delay(10);
-//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-
-//				sprintf(TX_buffer, "100 Hz\n");
-//				UART_TX(TX_buffer);
-//				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-
-				// Read data from sensors (ADC)
-
-				//HAL_ADC_Start_DMA(&hadc, (uint32_t*)ADC_counts, ADC_ACTIVE_CHANNELS);
-
-				//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-
-
-
-
-
-
-
-				flag_dt = 0;
-			}
-
-			if (flag_EOC != 0)
+			if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 			{
-				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 				flag_EOC = 0;
 
-//				for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
-//				{
-//					//ADC_voltages[i] = ((float)ADC_counts[i]) * 3.3 / 4095.0;
-//					ADC_mV[i] = ADC_counts[i] * 3300 / 4095;
-//				}
-//
+				for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
+				{
+					ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;
+					ADC_mV[i] = (ADC_counts[i] * ADC_V_REF_mV) / ADC_MAX_COUNTS;
+				}
+				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+
 //				// Calculate control action
 //
 //				// Update pump drive level (PWM)
 //
-//				// Send data (UART)
-//				sprintf(tx_buffer, "Trimpot: %d.%d V \n",
-//									(ADC_mV[2] / 1000),
-//									(ADC_mV[2] % 1000));
-//				//UART_TX(tx_buffer);
+				// Send data (UART)
+				sprintf(tx_buffer, "Trimpot: %d.%d V \n",
+									(ADC_mV[2] / 1000),
+									(ADC_mV[2] % 1000));
+				UART_TX(tx_buffer);
 			}
-
 		}
 		else if (op_mode == mode_debug)
 		{
 			// To do
 		}
-
-
 	}
   /* USER CODE END 3 */
 }
