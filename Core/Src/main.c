@@ -21,9 +21,9 @@
 //
 // 	INPUTS:
 //		User Button:	PA0 	(Active high, rising and falling edges detection)
-//		Pump Current:	PA3
-//		Pump Flow:		PA4
-//		Trimpot	PA5
+//		Pump Current:	PA3		(Micro pump electrical current)
+//		Pump Flow:		PA4		(Micro pump flow)
+//		Trimpot:		PA5		(Potentiometer to adjust PWM duty cycle on MANUAL MODE)
 //		UART RX:		PA10 	(Commands reception)
 //
 //
@@ -121,6 +121,10 @@ int main(void)
 
 	uint16_t i = 0;
 
+	float pump_current, pump_flow;
+	float trimpot;
+	float MCU_temperature, 	MCU_voltage_ref;
+
 
 
   /* USER CODE END 1 */
@@ -159,16 +163,14 @@ int main(void)
 	MX_ADC_Init();
 	MX_USART1_UART_Init();
 
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
-	//HAL_TIM_Base_Start_IT(&htim7);				// Timer 7 for sampling period
-
 	HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
+
+	HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 
 	sprintf(tx_buffer, "Smart Micro Pump\n");
 	UART_TX(tx_buffer);
 	UART_RX(rx_buffer);
-
-	//HAL_ADC_Start(&hadc);
 
   /* USER CODE END 2 */
 
@@ -179,8 +181,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		//HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-		//HAL_Delay(500);
 
 		// Mode selection via user button (Manual/Auto)
 		if (debouncedButtonPressed != 0)	// User button selects between
@@ -203,71 +203,77 @@ int main(void)
 //			debouncedButtonReleased = 0;
 //		}
 
-		if (op_mode == mode_manual)			// Manual mode:
-		{									// PWM duty cycle is set based on
-											// trimpot value read by the ADC
-			// To do
-
-			HAL_TIM_Base_Stop(&htim2);
-			HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
-
-			pulse++;				// Pulse Width sweep to test PWM generation
-			if (pulse == 1000)
-			{
-				pulse = 0;
-			}
-
-			PWM_setPulse(pulse);	// Updates duty cycle
-			HAL_Delay(5);
-		}
-		else if (op_mode == mode_auto)
+		if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{
-			// To do
+			flag_EOC = 0;
 
-			HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
-
-//			if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
-//			{					// according to Timer 7 interrupts
-////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
-////				HAL_Delay(10);
-////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-//
-////				sprintf(TX_buffer, "100 Hz\n");
-////				UART_TX(TX_buffer);
-////				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-//
-//				// Read data from sensors (ADC)
-//
-//				//HAL_ADC_Start_DMA(&hadc, (uint32_t*)ADC_counts, ADC_ACTIVE_CHANNELS);
-//
-//				//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-//
-//				flag_dt = 0;
-//			}
-
-			if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+			for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
 			{
-				flag_EOC = 0;
-
-				for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
-				{
-					ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;
-					ADC_mV[i] = (ADC_counts[i] * ADC_V_REF_mV) / ADC_MAX_COUNTS;
-				}
-				HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
-
-//				// Calculate control action
-//
-//				// Update pump drive level (PWM)
-//
-				// Send data (UART)
-				sprintf(tx_buffer, "Trimpot: %d.%d V \n",
-									(ADC_mV[2] / 1000),
-									(ADC_mV[2] % 1000));
-				UART_TX(tx_buffer);
+				ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;
+				ADC_mV[i] = (ADC_counts[i] * ADC_V_REF_mV) / ADC_MAX_COUNTS;
 			}
+			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
+
+			pump_current	= ADC_voltages[0];
+			pump_flow 		= ADC_voltages[1];
+			trimpot 		= ADC_voltages[2];
+			MCU_temperature	= ADC_voltages[3];
+			MCU_voltage_ref	= ADC_voltages[4];
+
+			// Send data (UART)
+			sprintf(tx_buffer, "Pump: Current: %d.%03d mA; Flow: %d.%03d mL/min; ",
+								((uint16_t)pump_current),((uint16_t)(1000 * pump_current))%1000,
+								((uint16_t)pump_flow)   ,((uint16_t)(1000 * pump_flow))%1000    );
+			UART_TX(tx_buffer);
+
+			sprintf(tx_buffer, "Trimpot: %d.%03d V; ",
+								((uint16_t)trimpot),((uint16_t)(1000 * trimpot))%1000);
+			UART_TX(tx_buffer);
+
+			sprintf(tx_buffer, "MCU: Temperature: %d.%03d °C; Vref: %d.%03d V. \n",
+								((uint16_t)MCU_temperature),((uint16_t)(1000 * MCU_temperature))%1000,
+								((uint16_t)MCU_voltage_ref),((uint16_t)(1000 * MCU_voltage_ref))%1000 );
+			UART_TX(tx_buffer);
+
+			flag_dt = 1;	// Will trigger the next PID Control iteration
 		}
-		else if (op_mode == mode_debug)
+
+		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+		{					// according to ADC EOC (which is trigger by Timer 2 interrupts)
+
+			if (op_mode == mode_manual)			// Manual mode:
+			{									// PWM duty cycle is set based on
+												// trimpot value read by the ADC
+
+	//			pulse++;				// Pulse Width sweep to test PWM generation
+	//			if (pulse == 1000)
+	//			{
+	//				pulse = 0;
+	//			}
+
+				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
+
+				sprintf(tx_buffer, "PWM pulse: %4d \n", pulse);
+				UART_TX(tx_buffer);
+
+				PWM_setPulse(pulse);	// Updates duty cycle
+				HAL_Delay(5);
+			}
+			else if (op_mode == mode_auto)
+			{
+
+
+			}
+			// Calculate control action
+
+
+			// Update pump drive level (PWM)
+
+			flag_dt = 0;
+		}
+
+
+		if (op_mode == mode_debug)
 		{
 			// To do
 		}

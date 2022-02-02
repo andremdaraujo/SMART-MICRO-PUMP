@@ -23,8 +23,8 @@
 /* USER CODE BEGIN 0 */
 #include "string.h"
 
-char tx_buffer[32];		// Buffer for TX data via UART
-char rx_buffer[32];		// Buffer for RX data via UART
+char tx_buffer[UART_BUFFER_SIZE];		// Buffer for TX data via UART
+char rx_buffer[UART_BUFFER_SIZE];		// Buffer for RX data via UART
 
 /* USER CODE END 0 */
 

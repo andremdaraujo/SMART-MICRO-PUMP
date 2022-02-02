@@ -37,9 +37,10 @@ extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN Private defines */
 
 #define BYTES_TO_RX	4
+#define UART_BUFFER_SIZE 64
 
-extern char tx_buffer[32];
-extern char rx_buffer[32];
+extern char tx_buffer[UART_BUFFER_SIZE];
+extern char rx_buffer[UART_BUFFER_SIZE];
 
 /* USER CODE END Private defines */
 
