@@ -113,6 +113,8 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
 	enum operation_mode op_mode = mode_manual;
+	sPID PID;
+
 	uint16_t pulse = 0;
 
 	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];
@@ -171,6 +173,8 @@ int main(void)
 	sprintf(tx_buffer, "Smart Micro Pump\n");
 	UART_TX(tx_buffer);
 	UART_RX(rx_buffer);
+
+	PID_init(&PID);
 
   /* USER CODE END 2 */
 
@@ -257,21 +261,22 @@ int main(void)
 				UART_TX(tx_buffer);
 
 				PWM_setPulse(pulse);	// Updates duty cycle
-				HAL_Delay(5);
+				//HAL_Delay(5);
 			}
 			else if (op_mode == mode_auto)
 			{
+				PID.set_point = 2.0 * (trimpot / ADC_V_REF);
+				PID.feedback = pump_flow;
 
+				// Calculate control action
+				PID_update(&PID);
 
+				// Update pump drive level (PWM)
+				pulse = (uint16_t)(PWM_MAX_COUNTS * PID.output);
+				PWM_setPulse(pulse);	// Updates duty cycle
 			}
-			// Calculate control action
-
-
-			// Update pump drive level (PWM)
-
 			flag_dt = 0;
 		}
-
 
 		if (op_mode == mode_debug)
 		{
