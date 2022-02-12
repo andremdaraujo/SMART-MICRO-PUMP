@@ -265,7 +265,7 @@ int main(void)
 			}
 			else if (op_mode == mode_auto)
 			{
-				PID.set_point = 2.0 * (trimpot / ADC_V_REF);
+				PID.set_point = 1.0 + 1.0 * (trimpot / ADC_V_REF);	// Practical range for the pump [1V ; 2V]
 				PID.feedback = pump_flow;
 
 				// Calculate control action

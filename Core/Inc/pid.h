@@ -24,9 +24,9 @@
 //
 //
 
-#define PID_INTEGRAL_SATURATION	100.0f
-#define PID_MAX_OUT				1000
-#define PID_MIN_OUT				 260
+#define PID_INTEGRAL_SATURATION	1000.0f
+#define PID_MAX_OUT				1000.0f
+#define PID_MIN_OUT				 260.0f
 
 typedef struct sPID
 {
