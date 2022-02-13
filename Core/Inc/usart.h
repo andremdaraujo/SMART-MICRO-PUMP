@@ -48,7 +48,8 @@ void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
-void UART_TX(char* buffer);
+void UART_TX_string(char* buffer);
+void UART_TX_float(float value);
 void UART_RX(char* buffer);
 
 /* USER CODE END Prototypes */

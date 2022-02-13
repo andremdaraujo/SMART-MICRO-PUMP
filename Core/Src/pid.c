@@ -12,15 +12,15 @@ void 	PID_init(sPID* PID)
 {
 	PID->dt = 0.010;			// Sampling frequency: 100 Hz
 
-	PID->kP =  250.0;			// Proportional gain
-	PID->kI = 2500.0;			// Integral gain
-	PID->kD =   25.0;			// Derivative gain
+	PID->kP =  1.00;			// Proportional gain
+	PID->kI = 12.00;			// Integral gain
+	PID->kD =  0.05;			// Derivative gain
 
 	PID->proportional = 0.0;	// Proportional term
 	PID->integral 	  = 0.0;	// Integral term
 	PID->derivative   = 0.0;	// Derivative term
 
-	PID->set_point 	= 1.5;		// Set Point - desired controlled variable value
+	PID->set_point 	= 250.0;	// Set Point - desired controlled variable value
 	PID->feedback 	= 0.0;		// Feedback  - measurement from sensor
 	PID->error 		= 0.0;		// Error == (Set Point - Feedback)
 

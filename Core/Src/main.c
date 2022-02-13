@@ -76,6 +76,8 @@ enum operation_mode {mode_manual = 0, mode_auto = 1, mode_debug = 2};
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define FLOW_RANGE 500.0f
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -102,7 +104,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void print_float(float value);
+
 
 /* USER CODE END 0 */
 
@@ -121,15 +123,12 @@ int main(void)
 
 	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];
 	float ADC_voltages[ADC_ACTIVE_CHANNELS];
-	uint16_t ADC_mV[ADC_ACTIVE_CHANNELS];
 
 	uint16_t i = 0;
 
-	float pump_current, pump_flow;
+	float pump_current, pump_flow, pump_sqrt_flow;
 	float trimpot;
 	float MCU_temperature, 	MCU_voltage_ref;
-
-
 
   /* USER CODE END 1 */
 
@@ -172,8 +171,7 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 
-	sprintf(tx_buffer, "Smart Micro Pump\n");
-	UART_TX(tx_buffer);
+	UART_TX_string("Smart Micro Pump\n");
 	UART_RX(rx_buffer);
 
 	PID_init(&PID);
@@ -204,10 +202,10 @@ int main(void)
 			debouncedButtonPressed = 0;
 		}
 
-//		if (debouncedButtonReleased != 0)	// Interrupts are also generated when
-//		{									// button is released
-//			debouncedButtonReleased = 0;
-//		}
+		//	if (debouncedButtonReleased != 0)	// Interrupts are also generated when
+		//	{									// button is released
+		//		debouncedButtonReleased = 0;
+		//	}
 
 		if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{
@@ -216,30 +214,19 @@ int main(void)
 			for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
 			{
 				ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;
-				ADC_mV[i] = (ADC_counts[i] * ADC_V_REF_mV) / ADC_MAX_COUNTS;
 			}
 			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
-			pump_current	= ADC_voltages[0];
-			pump_flow 		= ADC_voltages[1];
-			trimpot 		= ADC_voltages[2];
-			MCU_temperature	= ADC_voltages[3];
-			MCU_voltage_ref	= ADC_voltages[4];
+			pump_current	= ADC_voltages[0] * 1000.0 / 1.0;	// mA (Ohm's law: I = V/R; R = 1 Ohm)
 
-			// Send data (UART)
-//			sprintf(tx_buffer, "Pump: Current: %d.%03d mA; Flow: %d.%03d mL/min; ",
-//								((uint16_t)pump_current),((uint16_t)(1000 * pump_current))%1000,
-//								((uint16_t)pump_flow)   ,((uint16_t)(1000 * pump_flow))%1000    );
-//			UART_TX(tx_buffer);
-//
-//			sprintf(tx_buffer, "Trimpot: %d.%03d V; ",
-//								((uint16_t)trimpot),((uint16_t)(1000 * trimpot))%1000);
-//			UART_TX(tx_buffer);
-//
-//			sprintf(tx_buffer, "MCU: Temperature: %d.%03d °C; Vref: %d.%03d V. \n",
-//								((uint16_t)MCU_temperature),((uint16_t)(1000 * MCU_temperature))%1000,
-//								((uint16_t)MCU_voltage_ref),((uint16_t)(1000 * MCU_voltage_ref))%1000 );
-//			UART_TX(tx_buffer);
+			pump_sqrt_flow	= (ADC_voltages[1] - 0.5)  / 2.1;	// D6F-P0010A1 datasheet curve approximation
+			pump_flow		= 1000 * pump_sqrt_flow * pump_sqrt_flow;	// mL/min
+
+			trimpot 		= ADC_voltages[2];					// V
+
+			MCU_temperature	= ADC_voltages[3];					// °C
+
+			MCU_voltage_ref	= ADC_voltages[4];					// V
 
 			flag_dt = 1;	// Will trigger the next PID Control iteration
 		}
@@ -253,43 +240,46 @@ int main(void)
 				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
 
 				sprintf(tx_buffer, "PWM pulse: %4d \n", pulse);
-				UART_TX(tx_buffer);
+				UART_TX_string(tx_buffer);
 
 				PWM_setPulse(pulse);	// Updates duty cycle
 			}
 			else if (op_mode == mode_auto)
 			{
-				PID.set_point = 1.0 + 1.0 * (trimpot / ADC_V_REF);	// Practical range for the pump [1V ; 2V]
+				// Set point update
+				PID.set_point = 85 + (trimpot / ADC_V_REF) * (FLOW_RANGE - 85);	// Practical range for the pump (85 to 500 mL/min)
+
+				// Feedback update
 				PID.feedback = pump_flow;
 
 				// Calculate control action
 				PID_update(&PID);
 
 				// Update pump drive level (PWM)
-				pulse = (uint16_t)(PWM_MAX_COUNTS * PID.output);
-				PWM_setPulse(pulse);	// Updates duty cycle
+				pulse = (uint16_t)(PWM_MAX_COUNTS * PID.output);	// Converts Duty Cycle (%) to Pulse Width (timer counts)
+				PWM_setPulse(pulse);								// Updates duty cycle
 
 				// Send data (UART)
-				UART_TX("Set Point:");
-				print_float(PID.set_point);
-				UART_TX("Feedback:");
-				print_float(PID.feedback);
-				UART_TX("Error:");
-				print_float(PID.error);
+				UART_TX_string("Set Point:");
+				UART_TX_float(PID.set_point);
+				UART_TX_string("Feedback:");
+				UART_TX_float(PID.feedback);
+				UART_TX_string("Error:");
+				UART_TX_float(PID.error);
 
-				UART_TX("P:");
-				print_float(PID.proportional);
-				UART_TX("I:");
-				print_float(PID.integral);
-				UART_TX("D:");
-				print_float(PID.derivative);
+				UART_TX_string("P:");
+				UART_TX_float(PID.proportional);
+				UART_TX_string("I:");
+				UART_TX_float(PID.integral);
+				UART_TX_string("D:");
+				UART_TX_float(PID.derivative);
 
-				UART_TX("Output:");
-				print_float(PID.output);
-				UART_TX("Current:");
-				print_float(pump_current);
+				UART_TX_string("Output:");
+				UART_TX_float(PID.output);
+				UART_TX_string("Current:");
+				UART_TX_float(pump_current);
 
-				UART_TX("\r ");
+				UART_TX_string("\r ");
 			}
 			flag_dt = 0;
 		}
@@ -345,12 +335,6 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-void print_float(float value)
-{
-	if (value >= 0)	sprintf(tx_buffer, "%2d.%03d, ",  (uint16_t)( value), (((uint16_t)(1000 * value))%1000));
-	else			sprintf(tx_buffer, "%2d.%03d, ", -(uint16_t)(-value), (((uint16_t)(1000 * value))%1000));
-	UART_TX(tx_buffer);
-}
 
 /* USER CODE END 4 */
 

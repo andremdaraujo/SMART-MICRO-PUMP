@@ -1,5 +1,5 @@
-#ifndef __PID_H
-#define __PID_H
+#ifndef __PID_H__
+#define __PID_H__
 
 //
 // 	PID Controller Diagram:
@@ -52,4 +52,4 @@ typedef struct sPID
 void 	PID_init(sPID* PID);
 void 	PID_update(sPID* PID);
 
-#endif // __PID_H
+#endif // __PID_H__

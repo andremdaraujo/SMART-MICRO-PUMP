@@ -21,7 +21,8 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 char tx_buffer[UART_BUFFER_SIZE];		// Buffer for TX data via UART
 char rx_buffer[UART_BUFFER_SIZE];		// Buffer for RX data via UART
@@ -120,9 +121,19 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-void UART_TX(char* buffer)	// UART TX facade
+
+// https://x-io.co.uk/serial-oscilloscope/
+
+void UART_TX_string(char* buffer)	// UART TX facade
 {
 	HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
+}
+
+void UART_TX_float(float value)
+{
+	if (value >= 0)	sprintf(tx_buffer, "%2d.%03d, ",  (uint16_t)( value), (((uint16_t)(1000 * value))%1000));
+	else			sprintf(tx_buffer, "%2d.%03d, ", -(uint16_t)(-value), (((uint16_t)(1000 * value))%1000));
+	UART_TX_string(tx_buffer);
 }
 
 void UART_RX(char* buffer)	// UART RX facade
