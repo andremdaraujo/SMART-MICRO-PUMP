@@ -11,10 +11,10 @@
 //	The program has 2 modes of operation, MANUAL and AUTO.
 //
 //	MANUAL mode will read the voltage on a trimpot and adjust the PWM duty cycle
-//	accordingly (0-3 input to 0-100% output)
+//	accordingly (0-3V input to 0-100% output).
 //
-//	AUTO mode will control the pump PWM using the PID control and a flow sensor
-//	reading for flow feedback.
+//	AUTO mode will control the pump PWM using PID control with a flow sensor
+//	reading as feedback.
 //
 //	TARGET:
 //		STM32L152RB ("STM32L-Discovery" Board)
@@ -101,6 +101,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void print_float(float value);
 
 /* USER CODE END 0 */
 
@@ -225,35 +227,28 @@ int main(void)
 			MCU_voltage_ref	= ADC_voltages[4];
 
 			// Send data (UART)
-			sprintf(tx_buffer, "Pump: Current: %d.%03d mA; Flow: %d.%03d mL/min; ",
-								((uint16_t)pump_current),((uint16_t)(1000 * pump_current))%1000,
-								((uint16_t)pump_flow)   ,((uint16_t)(1000 * pump_flow))%1000    );
-			UART_TX(tx_buffer);
-
-			sprintf(tx_buffer, "Trimpot: %d.%03d V; ",
-								((uint16_t)trimpot),((uint16_t)(1000 * trimpot))%1000);
-			UART_TX(tx_buffer);
-
-			sprintf(tx_buffer, "MCU: Temperature: %d.%03d °C; Vref: %d.%03d V. \n",
-								((uint16_t)MCU_temperature),((uint16_t)(1000 * MCU_temperature))%1000,
-								((uint16_t)MCU_voltage_ref),((uint16_t)(1000 * MCU_voltage_ref))%1000 );
-			UART_TX(tx_buffer);
+//			sprintf(tx_buffer, "Pump: Current: %d.%03d mA; Flow: %d.%03d mL/min; ",
+//								((uint16_t)pump_current),((uint16_t)(1000 * pump_current))%1000,
+//								((uint16_t)pump_flow)   ,((uint16_t)(1000 * pump_flow))%1000    );
+//			UART_TX(tx_buffer);
+//
+//			sprintf(tx_buffer, "Trimpot: %d.%03d V; ",
+//								((uint16_t)trimpot),((uint16_t)(1000 * trimpot))%1000);
+//			UART_TX(tx_buffer);
+//
+//			sprintf(tx_buffer, "MCU: Temperature: %d.%03d °C; Vref: %d.%03d V. \n",
+//								((uint16_t)MCU_temperature),((uint16_t)(1000 * MCU_temperature))%1000,
+//								((uint16_t)MCU_voltage_ref),((uint16_t)(1000 * MCU_voltage_ref))%1000 );
+//			UART_TX(tx_buffer);
 
 			flag_dt = 1;	// Will trigger the next PID Control iteration
 		}
 
-		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
+		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz),
 		{					// according to ADC EOC (which is trigger by Timer 2 interrupts)
 
-			if (op_mode == mode_manual)			// Manual mode:
-			{									// PWM duty cycle is set based on
-												// trimpot value read by the ADC
-
-	//			pulse++;				// Pulse Width sweep to test PWM generation
-	//			if (pulse == 1000)
-	//			{
-	//				pulse = 0;
-	//			}
+			if (op_mode == mode_manual)			// Manual mode: PWM duty cycle is set based on
+			{									// trimpot value read by the ADC
 
 				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
 
@@ -261,7 +256,6 @@ int main(void)
 				UART_TX(tx_buffer);
 
 				PWM_setPulse(pulse);	// Updates duty cycle
-				//HAL_Delay(5);
 			}
 			else if (op_mode == mode_auto)
 			{
@@ -274,6 +268,28 @@ int main(void)
 				// Update pump drive level (PWM)
 				pulse = (uint16_t)(PWM_MAX_COUNTS * PID.output);
 				PWM_setPulse(pulse);	// Updates duty cycle
+
+				// Send data (UART)
+				UART_TX("Set Point:");
+				print_float(PID.set_point);
+				UART_TX("Feedback:");
+				print_float(PID.feedback);
+				UART_TX("Error:");
+				print_float(PID.error);
+
+				UART_TX("P:");
+				print_float(PID.proportional);
+				UART_TX("I:");
+				print_float(PID.integral);
+				UART_TX("D:");
+				print_float(PID.derivative);
+
+				UART_TX("Output:");
+				print_float(PID.output);
+				UART_TX("Current:");
+				print_float(pump_current);
+
+				UART_TX("\r ");
 			}
 			flag_dt = 0;
 		}
@@ -328,6 +344,13 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void print_float(float value)
+{
+	if (value >= 0)	sprintf(tx_buffer, "%2d.%03d, ",  (uint16_t)( value), (((uint16_t)(1000 * value))%1000));
+	else			sprintf(tx_buffer, "%2d.%03d, ", -(uint16_t)(-value), (((uint16_t)(1000 * value))%1000));
+	UART_TX(tx_buffer);
+}
 
 /* USER CODE END 4 */
 

@@ -4,24 +4,21 @@
 //
 // 	PID Controller Diagram:
 //
-//						-----------------		-------------
-//	Set Point  + 		|         		|  PWM  |			|          Output (Flow)
-//			---> O ---->|  Controller	|------>|  System	|---------->
-//			     ^		|         		|		|			|		|
-//				 |      -----------------		-------------		|
-//				 |													|
-//			     |                     --------------				|
-//	             |      			   |			|          		|
-//		         ----------------------|  Sensor	|<---------------
-//		  Feedback                     |			|
-//			                           --------------
+//						   ------------------		-------------
+//	Set Point  	 + 		   |         		|  PWM  |			|          Output (Flow)
+//	(Voltage)	--> O ---->|  Controller	|------>|  System	|---------->
+//			    	^ -	   |         		|		|			|		|
+//					|      ------------------		-------------		|
+//					|													|
+//			   		|                     	--------------				|
+//	             	|      			   		|			 |          	|
+//		         	------------------------|  Sensor	 |<--------------
+//		 		Feedback (Voltage)      	|			 |
+//			                           		--------------
 //
 //	System characteristics:
-//		Minimum flow: =~ 1 V 	(PWM duty cycle 26%)
-//		Maximum flow: =~ 2.15 V	(PWM duty cycle 100%)
-//
-//
-//
+//		Minimum flow: =~ 1.00 V (PWM duty cycle  26.0%)
+//		Maximum flow: =~ 2.15 V	(PWM duty cycle 100.0%)
 //
 
 #define PID_INTEGRAL_SATURATION	1000.0f

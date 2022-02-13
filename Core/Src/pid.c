@@ -11,10 +11,9 @@
 void 	PID_init(sPID* PID)
 {
 	PID->dt = 0.010;			// Sampling frequency: 100 Hz
-	PID->tau = 1.0;				// Low Pass Filter time constant
 
 	PID->kP =  250.0;			// Proportional gain
-	PID->kI = 3000.0;			// Integral gain
+	PID->kI = 2500.0;			// Integral gain
 	PID->kD =   25.0;			// Derivative gain
 
 	PID->proportional = 0.0;	// Proportional term
