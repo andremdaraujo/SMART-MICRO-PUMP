@@ -217,9 +217,10 @@ int main(void)
 			}
 			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
-			pump_current	= ADC_voltages[0] * 1000.0 / 1.0;	// mA (Ohm's law: I = V/R; R = 1 Ohm)
+			pump_current	= ADC_voltages[0] * 1000.0 / (1.0 * 5.89);	// mA (Ohm's law: I = V/R; R = 1 Ohm)
+																		// AA filter gain: 6.6
 
-			pump_sqrt_flow	= (ADC_voltages[1] - 0.5)  / 2.1;	// D6F-P0010A1 datasheet curve approximation
+			pump_sqrt_flow	= (ADC_voltages[1] - 0.5)  / 2.1;			// D6F-P0010A1 datasheet curve approximation
 			pump_flow		= 1000 * pump_sqrt_flow * pump_sqrt_flow;	// mL/min
 
 			trimpot 		= ADC_voltages[2];					// V
@@ -257,14 +258,14 @@ int main(void)
 
 				// Update pump drive level (PWM)
 				pulse = (uint16_t)(PWM_MAX_COUNTS * PID.output);	// Converts Duty Cycle (%) to Pulse Width (timer counts)
-				PWM_setPulse(pulse);								// Updates duty cycle
+				PWM_setPulse(pulse);								// Updates Duty Cycle
 
 				// Send data (UART)
-				UART_TX_string("Set Point:");
+				UART_TX_string("SP:");
 				UART_TX_float(PID.set_point);
-				UART_TX_string("Feedback:");
+				UART_TX_string("FB:");
 				UART_TX_float(PID.feedback);
-				UART_TX_string("Error:");
+				UART_TX_string("E:");
 				UART_TX_float(PID.error);
 
 				UART_TX_string("P:");
@@ -274,9 +275,9 @@ int main(void)
 				UART_TX_string("D:");
 				UART_TX_float(PID.derivative);
 
-				UART_TX_string("Output:");
+				UART_TX_string("OUT:");
 				UART_TX_float(PID.output);
-				UART_TX_string("Current:");
+				UART_TX_string("mA:");
 				UART_TX_float(pump_current);
 
 				UART_TX_string("\r ");
