@@ -2758,9 +2758,9 @@ void 	PID_init(sPID* PID)
  80019f6:	4a1a      	ldr	r2, [pc, #104]	; (8001a60 <PID_init+0x74>)
  80019f8:	601a      	str	r2, [r3, #0]
 
-	PID->kP =  1.00;			// Proportional gain
+	PID->kP =  0.50;			// Proportional gain
  80019fa:	687b      	ldr	r3, [r7, #4]
- 80019fc:	f04f 527e 	mov.w	r2, #1065353216	; 0x3f800000
+ 80019fc:	f04f 527c 	mov.w	r2, #1056964608	; 0x3f000000
  8001a00:	609a      	str	r2, [r3, #8]
 	PID->kI = 12.00;			// Integral gain
  8001a02:	687b      	ldr	r3, [r7, #4]

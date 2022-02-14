@@ -12,7 +12,7 @@ void 	PID_init(sPID* PID)
 {
 	PID->dt = 0.010;			// Sampling frequency: 100 Hz
 
-	PID->kP =  1.00;			// Proportional gain
+	PID->kP =  0.50;			// Proportional gain
 	PID->kI = 12.00;			// Integral gain
 	PID->kD =  0.05;			// Derivative gain
 
