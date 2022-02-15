@@ -23,13 +23,13 @@
 //		User Button:	PA0 	(Active high, rising and falling edges detection)
 //		Pump Current:	PA3		(Micro pump electrical current)
 //		Pump Flow:		PA4		(Micro pump flow)
-//		Trimpot:		PA5		(Potentiometer to adjust PWM duty cycle on MANUAL MODE)
+//		Trimpot:		PA5		(Potentiometer to adjust PWM duty cycle/set point on MANUA/AUTO modes
 //		UART RX:		PA10 	(Commands reception)
 //
 //
 //	OUTPUTS:
 //		UART TX:		PA9		(Data transmission)
-//		DC Motor:		PB6		(PWM)
+//		DC Motor Drive:	PB6		(PWM)
 //		Blue  LED:		PB6 	(PWM indication)
 //		Green LED:		PB7 	(Mode indication)
 //		Test output:	PC0		(Timing verification using an oscilloscope)
@@ -37,7 +37,7 @@
 //	PERIPHERALS:
 //		ADC:					Internal ADC (3 channels)
 //		Sampling period timer:	TIM2 	(fS   = 100  Hz)
-//		PWM generation:			TIM4 	(fPWM =  10 kHz)
+//		PWM generation:			TIM4 	(fPWM =  16 kHz)
 //		Debounce timer:			TIM6 	(fDEB =   1 kHz)
 //		UART:					USART1	(baud = 115200 bps, 8N1)
 //
@@ -202,8 +202,8 @@ int main(void)
 			debouncedButtonPressed = 0;
 		}
 
-		//	if (debouncedButtonReleased != 0)	// Interrupts are also generated when
-		//	{									// button is released
+		//	if (debouncedButtonReleased != 0)	// Debounced interrupts are also generated
+		//	{									// when button is released
 		//		debouncedButtonReleased = 0;
 		//	}
 
@@ -217,7 +217,7 @@ int main(void)
 			}
 			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
-			pump_current	= ADC_voltages[0] * 1000.0 / (1.0 * 5.89);	// mA (Ohm's law: I = V/R; R = 1 Ohm)
+			pump_current	= ADC_voltages[0] * 1000.0 / (1.0 * 6.6);	// mA (Ohm's law: I = V/R; R = 1 Ohm)
 																		// AA filter gain: 6.6
 
 			pump_sqrt_flow	= (ADC_voltages[1] - 0.5)  / 2.1;			// D6F-P0010A1 datasheet curve approximation
