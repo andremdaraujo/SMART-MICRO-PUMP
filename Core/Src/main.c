@@ -172,7 +172,7 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 
 	UART_TX_string("Smart Micro Pump\n");
-	UART_RX(rx_buffer);
+	UART_RX(rx_buffer);							// Starts serial reception
 
 	PID_init(&PID);
 
@@ -279,6 +279,8 @@ int main(void)
 				UART_TX_float(PID.output);
 				UART_TX_string("mA:");
 				UART_TX_float(pump_current);
+
+				// include temperature and VREF
 
 				UART_TX_string("\r ");
 			}
