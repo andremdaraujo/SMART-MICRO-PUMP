@@ -30,7 +30,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_exti.h \
  ../Core/Inc/adc.h ../Core/Inc/main.h ../Core/Inc/dma.h ../Core/Inc/tim.h \
  ../Core/Inc/usart.h ../Core/Inc/gpio.h ../Core/Inc/global.h \
- ../Core/Inc/pid.h ../Core/Inc/pwm.h
+ ../Core/Inc/cli.h ../Core/Inc/pid.h ../Core/Inc/pwm.h \
+ ../Core/Inc/version.h
 
 ../Core/Inc/main.h:
 
@@ -106,6 +107,10 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Core/Inc/global.h:
 
+../Core/Inc/cli.h:
+
 ../Core/Inc/pid.h:
 
 ../Core/Inc/pwm.h:
+
+../Core/Inc/version.h:

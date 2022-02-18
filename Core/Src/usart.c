@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
+#include "global.h"
 
 /* USER CODE BEGIN 0 */
 #include <stdio.h>
@@ -131,8 +132,8 @@ void UART_TX_string(char* buffer)	// UART TX facade
 
 void UART_TX_float(float value)
 {
-	if (value >= 0)	sprintf(tx_buffer, "%2d.%03d, ",  (uint16_t)( value), (((uint16_t)(1000 * value))%1000));
-	else			sprintf(tx_buffer, "%2d.%03d, ", -(uint16_t)(-value), (((uint16_t)(1000 * value))%1000));
+	if (value >= 0)	sprintf(tx_buffer, "%2d.%03d,",  (uint16_t)( value), (((uint16_t)(1000 * value))%1000));
+	else			sprintf(tx_buffer, "%2d.%03d,", -(uint16_t)(-value), (((uint16_t)(1000 * value))%1000));
 	UART_TX_string(tx_buffer);
 }
 
@@ -141,9 +142,12 @@ void UART_RX(char* buffer)	// UART RX facade
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)buffer, BYTES_TO_RX);
 }
 
+
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UART_RX(rx_buffer);
+	flag_CRX = 1;
 }
 
 /* USER CODE END 1 */

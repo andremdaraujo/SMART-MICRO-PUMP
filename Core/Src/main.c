@@ -61,15 +61,17 @@
 #include <string.h>
 
 #include "global.h"
+#include "cli.h"
 #include "pid.h"
 #include "pwm.h"
+#include "version.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-enum operation_mode {mode_manual = 0, mode_auto = 1, mode_debug = 2};
+
 
 /* USER CODE END PTD */
 
@@ -116,7 +118,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	enum operation_mode op_mode = mode_manual;
+	//enum operation_mode op_mode = mode_idle;
 	sPID PID;
 
 	uint16_t pulse = 0;
@@ -125,6 +127,7 @@ int main(void)
 	float ADC_voltages[ADC_ACTIVE_CHANNELS];
 
 	uint16_t i = 0;
+	uint8_t debug_counter = 0;
 
 	float pump_current, pump_flow, pump_sqrt_flow;
 	float trimpot;
@@ -171,10 +174,29 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 
-	UART_TX_string("Smart Micro Pump\n");
+	PID_init(&PID);
+
+	UART_TX_string("Smart Micro Pump \n\r");
+	UART_TX_string("Firmware version: ");
+	UART_TX_string(FW_VERSION);
+	UART_TX_string("\n\r\r");
+	UART_TX_string("Enter command, or press USER BUTTON on DISCO BOARD to start manual/auto modes: \n\r");
+	UART_TX_string(AVAILABLE_COMMANDS);
 	UART_RX(rx_buffer);							// Starts serial reception
 
-	PID_init(&PID);
+	while (op_mode == mode_idle)
+	{
+		// Wait for user command via console or button press
+		if (debouncedButtonPressed != 0)
+		{
+			op_mode = mode_manual;
+		}
+
+		if (flag_CRX != 0)
+		{
+			CLI_decode(rx_buffer);
+		}
+	}
 
   /* USER CODE END 2 */
 
@@ -189,15 +211,19 @@ int main(void)
 		// Mode selection via user button (Manual/Auto)
 		if (debouncedButtonPressed != 0)	// User button selects between
 		{									// Manual and Auto modes
-			if (op_mode == mode_manual)
+			if (op_mode != mode_auto)
 			{
 				op_mode = mode_auto;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				UART_TX_string("Auto mode selected. \n\r");
+				UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 			}
-			else if (op_mode == mode_auto)
+			else //if (op_mode == mode_manual)
 			{
 				op_mode = mode_manual;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
+				UART_TX_string("Manual mode selected. \n\r");
+				UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 			}
 			debouncedButtonPressed = 0;
 		}
@@ -233,20 +259,24 @@ int main(void)
 		}
 
 		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz),
-		{					// according to ADC EOC (which is trigger by Timer 2 interrupts)
+		{					// according to ADC EOC (ADC is trigger by Timer 2 interrupts)
 
 			if (op_mode == mode_manual)			// Manual mode: PWM duty cycle is set based on
 			{									// trimpot value read by the ADC
 
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
+
 				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
 
-				sprintf(tx_buffer, "PWM pulse: %4d \n", pulse);
-				UART_TX_string(tx_buffer);
+				//sprintf(tx_buffer, "PWM pulse: %4d \n", pulse);
+				//UART_TX_string(tx_buffer);
 
 				PWM_setPulse(pulse);	// Updates duty cycle
 			}
 			else if (op_mode == mode_auto)
 			{
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+
 				// Set point update
 				PID.set_point = 85 + (trimpot / ADC_V_REF) * (FLOW_RANGE - 85);	// Practical range for the pump (85 to 500 mL/min)
 
@@ -275,7 +305,7 @@ int main(void)
 				UART_TX_string("D:");
 				UART_TX_float(PID.derivative);
 
-				UART_TX_string("OUT:");
+				UART_TX_string("O:");
 				UART_TX_float(PID.output);
 				UART_TX_string("mA:");
 				UART_TX_float(pump_current);
@@ -284,12 +314,43 @@ int main(void)
 
 				UART_TX_string("\r ");
 			}
+			else if (op_mode == mode_debug)
+			{
+				// To do
+				if (flag_update_pulse != 0)
+				{
+					pulse = (uint16_t)(PWM_MAX_COUNTS * cli_input_value/100.0);	// Converts Duty Cycle (%) to Pulse Width (timer counts)
+					PWM_setPulse(pulse);								// Updates Duty Cycle
+
+					cli_input_value = 0;
+					flag_update_pulse = 0;
+				}
+
+				debug_counter++;			// Software timer to blink the Grenn LED
+				if (debug_counter >= 50)
+				{
+					HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
+					debug_counter = 0;
+				}
+			}
+
 			flag_dt = 0;
 		}
 
-		if (op_mode == mode_debug)
+		if (flag_CRX != 0)
 		{
-			// To do
+			CLI_decode(rx_buffer);
+
+			flag_CRX = 0;
+
+		}
+		if (flag_wrong_cmd != 0)
+		{
+			UART_TX_string("Wrong command! Available commands: \n\r ");
+			UART_TX_string(AVAILABLE_COMMANDS);
+
+			flag_wrong_cmd = 0;
 		}
 	}
   /* USER CODE END 3 */

@@ -36,7 +36,7 @@ extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
 
-#define BYTES_TO_RX	4
+#define BYTES_TO_RX	1
 #define UART_BUFFER_SIZE 64
 
 extern char tx_buffer[UART_BUFFER_SIZE];
@@ -51,6 +51,7 @@ void MX_USART1_UART_Init(void);
 void UART_TX_string(char* buffer);
 void UART_TX_float(float value);
 void UART_RX(char* buffer);
+
 
 /* USER CODE END Prototypes */
 
