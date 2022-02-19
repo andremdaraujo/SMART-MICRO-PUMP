@@ -142,8 +142,6 @@ void UART_RX(char* buffer)	// UART RX facade
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)buffer, BYTES_TO_RX);
 }
 
-
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UART_RX(rx_buffer);

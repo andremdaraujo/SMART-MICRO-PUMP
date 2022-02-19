@@ -1,5 +1,5 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
- ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal.h \
+Core/Src/init.o: ../Core/Src/init.c ../Core/Inc/init.h ../Core/Inc/adc.h \
+ ../Core/Inc/main.h ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal.h \
  ../Core/Inc/stm32l1xx_hal_conf.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_rcc.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_def.h \
@@ -28,10 +28,14 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_tim_ex.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_uart.h \
  ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_exti.h \
- ../Core/Inc/adc.h ../Core/Inc/main.h ../Core/Inc/cli.h ../Core/Inc/dma.h \
- ../Core/Inc/global.h ../Core/Inc/gpio.h ../Core/Inc/init.h \
- ../Core/Inc/pid.h ../Core/Inc/pwm.h ../Core/Inc/tim.h \
- ../Core/Inc/usart.h ../Core/Inc/version.h
+ ../Core/Inc/cli.h ../Core/Inc/dma.h ../Core/Inc/global.h \
+ ../Core/Inc/gpio.h ../Core/Inc/main.h ../Core/Inc/pid.h \
+ ../Core/Inc/pwm.h ../Core/Inc/tim.h ../Core/Inc/usart.h \
+ ../Core/Inc/version.h
+
+../Core/Inc/init.h:
+
+../Core/Inc/adc.h:
 
 ../Core/Inc/main.h:
 
@@ -93,10 +97,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Drivers/STM32L1xx_HAL_Driver/Inc/stm32l1xx_hal_exti.h:
 
-../Core/Inc/adc.h:
-
-../Core/Inc/main.h:
-
 ../Core/Inc/cli.h:
 
 ../Core/Inc/dma.h:
@@ -105,7 +105,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Core/Inc/gpio.h:
 
-../Core/Inc/init.h:
+../Core/Inc/main.h:
 
 ../Core/Inc/pid.h:
 

@@ -2,15 +2,17 @@
 //	André A. M. Araújo
 //	2022/01/28
 //
-//	This library handles PID Control calculations. It is based on Phil's Lab
-//	video available on "https://www.youtube.com/watch?v=zOByx3Izf5U".
+//	This library handles PID Control calculations. It was based on
+// 	the algorithm available at wikipedia and also took inspiration
+// 	on Phil's Lab video available on:
+//	"https://www.youtube.com/watch?v=zOByx3Izf5U".
 //
 
 #include "pid.h"
 
 void 	PID_init(sPID* PID)
 {
-	PID->dt = 0.010;			// Sampling frequency: 100 Hz
+	PID->dt = 0.010;			// Sampling time: 10 ms (100 Hz)
 
 	PID->kP =  0.50;			// Proportional gain
 	PID->kI = 12.00;			// Integral gain

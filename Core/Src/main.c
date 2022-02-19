@@ -1,5 +1,3 @@
-/* USER CODE BEGIN Header */
-
 //
 //	André A. M. Araújo
 //	2022/01/24
@@ -8,13 +6,14 @@
 //	Making Embedded Systems by Elecia White.
 //
 //	The main objective is to control the flow of a micro pump using PID control.
-//	The program has 2 modes of operation, MANUAL and AUTO.
+//	The program has 3 modes of operation, MANUAL, AUTO and DEBUG.
 //
 //	MANUAL mode will read the voltage on a trimpot and adjust the PWM duty cycle
 //	accordingly (0-3V input to 0-100% output).
 //
 //	AUTO mode will control the pump PWM using PID control with a flow sensor
-//	reading as feedback.
+//	reading for feedback. The trimpot controls the set point to the pump
+//	(0-3V input to 85 - 500 mL/min).
 //
 //	TARGET:
 //		STM32L152RB ("STM32L-Discovery" Board)
@@ -25,7 +24,6 @@
 //		Pump Flow:		PA4		(Micro pump flow)
 //		Trimpot:		PA5		(Potentiometer to adjust PWM duty cycle/set point on MANUA/AUTO modes
 //		UART RX:		PA10 	(Commands reception)
-//
 //
 //	OUTPUTS:
 //		UART TX:		PA9		(Data transmission)
@@ -44,81 +42,28 @@
 //	Developed in STM32CubeIDE 1.8.0
 //
 
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
-#include "main.h"
-#include "adc.h"
-#include "dma.h"
-#include "tim.h"
-#include "usart.h"
-#include "gpio.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include "main.h"		// Main program
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "global.h"
-#include "cli.h"
-#include "pid.h"
-#include "pwm.h"
-#include "version.h"
+#include "adc.h"		// Internal ADC
+#include "cli.h"		// Command Line Interface
+#include "dma.h"		// Direct memory Access
+#include "global.h"		// Global variables
+#include "gpio.h"		// General Purpose Inputs and Outputs
+#include "init.h"		// Initialization routines
+#include "pid.h"		// PID controller
+#include "pwm.h"		// PWM
+#include "tim.h"		// Timers
+#include "usart.h"		// UART for serial communication
+#include "version.h"	// Version information
 
-/* USER CODE END Includes */
+#define FLOW_RANGE 500.0f	// Maximum flow the pump can achieve in this configuration
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-#define FLOW_RANGE 500.0f
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-
-
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
-
-void SystemClock_Config(void);
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-	//enum operation_mode op_mode = mode_idle;
 	sPID PID;
 
 	uint16_t pulse = 0;
@@ -133,81 +78,33 @@ int main(void)
 	float trimpot;
 	float MCU_temperature, 	MCU_voltage_ref;
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-//  /* Initialize all configured peripherals */
-//  MX_GPIO_Init();
-//  MX_ADC_Init();
-//  MX_TIM4_Init();
-//  MX_TIM6_Init();
-//  MX_DMA_Init();
-//  MX_USART1_UART_Init();
-//  MX_TIM2_Init();
-//  /* USER CODE BEGIN 2 */
-
-	MX_GPIO_Init();
-	MX_TIM2_Init();
-	MX_TIM4_Init();
-	MX_TIM6_Init();
-	MX_DMA_Init();
-	MX_ADC_Init();
-	MX_USART1_UART_Init();
+	MCU_init();
 
 	HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
-
 	HAL_TIM_Base_Start_IT(&htim2);				// Timer 2 for sampling period
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);	// Timer 4 for PWM generation
 
 	PID_init(&PID);
 
-	UART_TX_string("Smart Micro Pump \n\r");
-	UART_TX_string("Firmware version: ");
-	UART_TX_string(FW_VERSION);
-	UART_TX_string("\n\r\r");
-	UART_TX_string("Enter command, or press USER BUTTON on DISCO BOARD to start manual/auto modes: \n\r");
+	UART_TX_string("Enter command, or press USER BUTTON on DISCO BOARD to start AUTO/MANUAL modes: \n\r");
 	UART_TX_string(AVAILABLE_COMMANDS);
-	UART_RX(rx_buffer);							// Starts serial reception
+	UART_RX(rx_buffer);		// Starts serial reception
 
 	while (op_mode == mode_idle)
 	{
 		// Wait for user command via console or button press
-		if (debouncedButtonPressed != 0)
-		{
-			op_mode = mode_manual;
-		}
-
 		if (flag_CRX != 0)
 		{
 			CLI_decode(rx_buffer);
 		}
+		if (debouncedButtonPressed != 0)
+		{
+			op_mode = mode_manual;
+		}
 	}
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-
 		// Mode selection via user button (Manual/Auto)
 		if (debouncedButtonPressed != 0)	// User button selects between
 		{									// Manual and Auto modes
@@ -218,7 +115,7 @@ int main(void)
 				UART_TX_string("Auto mode selected. \n\r");
 				UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 			}
-			else //if (op_mode == mode_manual)
+			else
 			{
 				op_mode = mode_manual;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
@@ -230,16 +127,15 @@ int main(void)
 
 		//	if (debouncedButtonReleased != 0)	// Debounced interrupts are also generated
 		//	{									// when button is released
+		//		// To do
 		//		debouncedButtonReleased = 0;
 		//	}
 
 		if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{
-			flag_EOC = 0;
-
 			for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
 			{
-				ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;
+				ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;	// V = counts * 3.0 / (2^12 - 1)
 			}
 			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
@@ -255,6 +151,7 @@ int main(void)
 
 			MCU_voltage_ref	= ADC_voltages[4];					// V
 
+			flag_EOC = 0;
 			flag_dt = 1;	// Will trigger the next PID Control iteration
 		}
 
@@ -268,17 +165,15 @@ int main(void)
 
 				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
 
-				//sprintf(tx_buffer, "PWM pulse: %4d \n", pulse);
-				//UART_TX_string(tx_buffer);
-
 				PWM_setPulse(pulse);	// Updates duty cycle
 			}
 			else if (op_mode == mode_auto)
 			{
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 
-				// Set point update
-				PID.set_point = 85 + (trimpot / ADC_V_REF) * (FLOW_RANGE - 85);	// Practical range for the pump (85 to 500 mL/min)
+				// Set point update:
+				// (Practical range for the pump: 85 to 500 mL/min)
+				PID.set_point = 85 + (trimpot / ADC_V_REF) * (FLOW_RANGE - 85);
 
 				// Feedback update
 				PID.feedback = pump_flow;
@@ -310,13 +205,15 @@ int main(void)
 				UART_TX_string("mA:");
 				UART_TX_float(pump_current);
 
-				// include temperature and VREF
+				UART_TX_string("°C:");
+				UART_TX_float(MCU_temperature);
+				UART_TX_string("VREF:");
+				UART_TX_float(MCU_voltage_ref);
 
 				UART_TX_string("\r ");
 			}
 			else if (op_mode == mode_debug)
 			{
-				// To do
 				if (flag_update_pulse != 0)
 				{
 					pulse = (uint16_t)(PWM_MAX_COUNTS * cli_input_value/100.0);	// Converts Duty Cycle (%) to Pulse Width (timer counts)
@@ -326,15 +223,14 @@ int main(void)
 					flag_update_pulse = 0;
 				}
 
-				debug_counter++;			// Software timer to blink the Grenn LED
-				if (debug_counter >= 50)
+				debug_counter++;			// Software timer to blink the Green LED
+				if (debug_counter >= 50)	// 500 ms on (1 Hz)
 				{
 					HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 
 					debug_counter = 0;
 				}
 			}
-
 			flag_dt = 0;
 		}
 
@@ -343,8 +239,8 @@ int main(void)
 			CLI_decode(rx_buffer);
 
 			flag_CRX = 0;
-
 		}
+
 		if (flag_wrong_cmd != 0)
 		{
 			UART_TX_string("Wrong command! Available commands: \n\r ");
@@ -353,68 +249,15 @@ int main(void)
 			flag_wrong_cmd = 0;
 		}
 	}
-  /* USER CODE END 3 */
 }
 
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
-  RCC_OscInitStruct.PLL.PLLDIV = RCC_PLL_DIV3;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/* USER CODE BEGIN 4 */
-
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
+	  // To do
   }
-  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -427,10 +270,6 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+	// To do
 }
 #endif /* USE_FULL_ASSERT */
-

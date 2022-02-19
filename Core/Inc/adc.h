@@ -38,9 +38,9 @@ extern ADC_HandleTypeDef hadc;
 
 #define ADC_ACTIVE_CHANNELS	5
 
-#define ADC_V_REF_mV		3000
-#define ADC_V_REF			3.000f
-#define ADC_MAX_COUNTS		4095
+#define ADC_V_REF_mV		3000	// 3000 mV
+#define ADC_V_REF			3.000f	// 3.0V
+#define ADC_MAX_COUNTS		4095	// (2^12 - 1)
 
 /* USER CODE END Private defines */
 

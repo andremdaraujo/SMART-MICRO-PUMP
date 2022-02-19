@@ -6,19 +6,19 @@
 //
 //						   ------------------		-------------
 //	Set Point  	 + 		   |         		|  PWM  |			|          Output (Flow)
-//	(Voltage)	--> O ---->|  Controller	|------>|  System	|---------->
+//	(Flow)	    --> O ---->|  Controller	|------>|  System	|---------->
 //			    	^ -	   |         		|		|			|		|
 //					|      ------------------		-------------		|
 //					|													|
 //			   		|                     	--------------				|
 //	             	|      			   		|			 |          	|
 //		         	------------------------|  Sensor	 |<--------------
-//		 		Feedback (Voltage)      	|			 |
+//		 		Feedback (Flow)          	|			 |
 //			                           		--------------
 //
 //	System characteristics:
-//		Minimum flow: =~ 1.00 V (PWM duty cycle  26.0%)
-//		Maximum flow: =~ 2.15 V	(PWM duty cycle 100.0%)
+//		Minimum flow: =~  85 mL/min (Sensor voltage: 1.00 V; Pump PWM duty cycle:  26.0%)
+//		Maximum flow: =~ 500 mL/min (Sensor voltage: 2.15 V; Pump PWM duty cycle: 100.0%)
 //
 
 #define PID_INTEGRAL_SATURATION	1000.0f

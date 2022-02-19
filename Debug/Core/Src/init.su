@@ -1,0 +1,2 @@
+init.c:16:6:SystemClock_Config	80	static
+init.c:53:6:MCU_init	8	static

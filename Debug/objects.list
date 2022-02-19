@@ -3,6 +3,7 @@
 "./Core/Src/dma.o"
 "./Core/Src/global.o"
 "./Core/Src/gpio.o"
+"./Core/Src/init.o"
 "./Core/Src/main.o"
 "./Core/Src/pid.o"
 "./Core/Src/pwm.o"
