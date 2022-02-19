@@ -29,6 +29,7 @@ void CLI_decode(char* buffer)
 				case 'a':
 				case 'A':
 					op_mode = mode_auto;
+					UART_TX_string("\n\r\n\r");
 					UART_TX_string("Auto mode selected. \n\r");
 					UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 					break;
@@ -36,6 +37,7 @@ void CLI_decode(char* buffer)
 				case 'd':
 				case 'D':
 					op_mode = mode_debug;
+					UART_TX_string("\n\r\n\r");
 					UART_TX_string("Debug mode selected. \n\r");
 					UART_TX_string("Enter pulse width from 0 to 100 and terminate with 'p'. \n\r");
 					break;
@@ -43,6 +45,7 @@ void CLI_decode(char* buffer)
 				case 'm':
 				case 'M':
 					op_mode = mode_manual;
+					UART_TX_string("\n\r\n\r");
 					UART_TX_string("Manual mode selected. \n\r");
 					UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 					break;

@@ -60,7 +60,8 @@
 #include "usart.h"		// UART for serial communication
 #include "version.h"	// Version information
 
-#define FLOW_RANGE 500.0f	// Maximum flow the pump can achieve in this configuration
+#define MIN_FLOW 100.0f	// Minimum flow the pump can achieve in this configuration
+#define MAX_FLOW 500.0f	// Maximum flow the pump can achieve in this configuration
 
 int main(void)
 {
@@ -86,6 +87,7 @@ int main(void)
 
 	PID_init(&PID);
 
+	UART_TX_string("\n\r\n\r");
 	UART_TX_string("Enter command, or press USER BUTTON on DISCO BOARD to start AUTO/MANUAL modes: \n\r");
 	UART_TX_string(AVAILABLE_COMMANDS);
 	UART_RX(rx_buffer);		// Starts serial reception
@@ -112,6 +114,7 @@ int main(void)
 			{
 				op_mode = mode_auto;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+				UART_TX_string("\n\r\n\r");
 				UART_TX_string("Auto mode selected. \n\r");
 				UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 			}
@@ -119,6 +122,7 @@ int main(void)
 			{
 				op_mode = mode_manual;
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
+				UART_TX_string("\n\r\n\r");
 				UART_TX_string("Manual mode selected. \n\r");
 				UART_TX_string("Adjust pulse width via the trimpot on the DISCO BOARD. \n\r");
 			}
@@ -173,7 +177,7 @@ int main(void)
 
 				// Set point update:
 				// (Practical range for the pump: 85 to 500 mL/min)
-				PID.set_point = 85 + (trimpot / ADC_V_REF) * (FLOW_RANGE - 85);
+				PID.set_point = MIN_FLOW + (trimpot / ADC_V_REF) * (MAX_FLOW - MIN_FLOW);
 
 				// Feedback update
 				PID.feedback = pump_flow;
