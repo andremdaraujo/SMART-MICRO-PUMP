@@ -151,12 +151,12 @@ int main(void)
 
 			trimpot 		= ADC_voltages[2];					// V
 
-			MCU_temperature	= ADC_voltages[3];					// °C
+			MCU_temperature	= ADC_voltages[3];					// To do (°C)
 
 			MCU_voltage_ref	= ADC_voltages[4];					// V
 
 			flag_EOC = 0;
-			flag_dt = 1;	// Will trigger the next PID Control iteration
+			flag_dt  = 1;	// Will trigger the next PID Control iteration
 		}
 
 		if (flag_dt != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz),
@@ -164,7 +164,6 @@ int main(void)
 
 			if (op_mode == mode_manual)			// Manual mode: PWM duty cycle is set based on
 			{									// trimpot value read by the ADC
-
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 
 				pulse = (uint16_t)(PWM_MAX_COUNTS * (trimpot / ADC_V_REF));
@@ -220,10 +219,10 @@ int main(void)
 			{
 				if (flag_update_pulse != 0)
 				{
-					pulse = (uint16_t)(PWM_MAX_COUNTS * cli_input_value/100.0);	// Converts Duty Cycle (%) to Pulse Width (timer counts)
-					PWM_setPulse(pulse);								// Updates Duty Cycle
+					pulse = (uint16_t)(PWM_MAX_COUNTS * cli_input_value/100.0); // Converts Duty Cycle (%) to Pulse Width (timer counts)
+					PWM_setPulse(pulse);										// Updates Duty Cycle
 
-					cli_input_value = 0;
+					cli_input_value   = 0;
 					flag_update_pulse = 0;
 				}
 
@@ -257,11 +256,11 @@ int main(void)
 
 void Error_Handler(void)
 {
-  __disable_irq();
-  while (1)
-  {
-	  // To do
-  }
+	__disable_irq();
+	while (1)
+	{
+		// To do
+	}
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -276,4 +275,4 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
 	// To do
 }
-#endif /* USE_FULL_ASSERT */
+#endif // USE_FULL_ASSERT
