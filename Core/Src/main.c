@@ -60,25 +60,26 @@
 #include "usart.h"		// UART for serial communication
 #include "version.h"	// Version information
 
-#define MIN_FLOW 100.0f	// Minimum flow the pump can achieve in this configuration
-#define MAX_FLOW 500.0f	// Maximum flow the pump can achieve in this configuration
+#define MIN_FLOW 100.0f	// Minimum flow the pump can achieve in the prototype
+#define MAX_FLOW 500.0f	// Maximum flow the pump can achieve in the prototype
 
 int main(void)
 {
-	sPID PID;
+	// Variable declarations
+	uint16_t i = 0;				// Variables for counters
+	uint8_t debug_counter = 0;	//
 
-	uint16_t pulse = 0;
+	sPID PID;					// PID struct
+	uint16_t pulse = 0;			// PWM pulse width
 
-	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];
-	float ADC_voltages[ADC_ACTIVE_CHANNELS];
+	volatile uint16_t ADC_counts[ADC_ACTIVE_CHANNELS];	// Array to store ADC raw values
+	float ADC_voltages[ADC_ACTIVE_CHANNELS];			// Array to store ADC data in volts
 
-	uint16_t i = 0;
-	uint8_t debug_counter = 0;
+	float pump_current, pump_flow, pump_sqrt_flow;		// ADC voltages converted to physical units
+	float trimpot;										//
+	float MCU_temperature, 	MCU_voltage_ref;			//
 
-	float pump_current, pump_flow, pump_sqrt_flow;
-	float trimpot;
-	float MCU_temperature, 	MCU_voltage_ref;
-
+	// Device initialization
 	MCU_init();
 
 	HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_counts, ADC_ACTIVE_CHANNELS);
@@ -92,6 +93,7 @@ int main(void)
 	UART_TX_string(AVAILABLE_COMMANDS);
 	UART_RX(rx_buffer);		// Starts serial reception
 
+	// Idle mode
 	while (op_mode == mode_idle)
 	{
 		// Wait for user command via console or button press
@@ -105,6 +107,7 @@ int main(void)
 		}
 	}
 
+	// Infinite loop
 	while (1)
 	{
 		// Mode selection via user button (Manual/Auto)
@@ -137,11 +140,11 @@ int main(void)
 
 		if (flag_EOC != 0)	// Sampling time (dt) = 10ms (fS = 100 Hz)
 		{
+
 			for (i = 0; i < ADC_ACTIVE_CHANNELS; i++)
 			{
 				ADC_voltages[i] = ADC_counts[i] * ADC_V_REF / ADC_MAX_COUNTS;	// V = counts * 3.0 / (2^12 - 1)
 			}
-			HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 
 			pump_current	= ADC_voltages[0] * 1000.0 / (1.0 * 6.6);	// mA (Ohm's law: I = V/R; R = 1 Ohm)
 																		// AA filter gain: 6.6
@@ -172,7 +175,9 @@ int main(void)
 			}
 			else if (op_mode == mode_auto)
 			{
-				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+
+
+
 
 				// Set point update:
 				// (Practical range for the pump: 85 to 500 mL/min)
@@ -214,10 +219,12 @@ int main(void)
 				UART_TX_float(MCU_voltage_ref);
 
 				UART_TX_string("\r ");
+
+
 			}
 			else if (op_mode == mode_debug)
 			{
-				if (flag_update_pulse != 0)
+				if (flag_update_pulse != 0)	// updates pulse width according to value input via the CLI
 				{
 					pulse = (uint16_t)(PWM_MAX_COUNTS * cli_input_value/100.0); // Converts Duty Cycle (%) to Pulse Width (timer counts)
 					PWM_setPulse(pulse);										// Updates Duty Cycle
@@ -227,7 +234,7 @@ int main(void)
 				}
 
 				debug_counter++;			// Software timer to blink the Green LED
-				if (debug_counter >= 50)	// 500 ms on (1 Hz)
+				if (debug_counter >= 50)	// 500 ms ON, 500 ms OFF (1 Hz)
 				{
 					HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 
@@ -237,14 +244,14 @@ int main(void)
 			flag_dt = 0;
 		}
 
-		if (flag_CRX != 0)
+		if (flag_CRX != 0)			// Command received
 		{
-			CLI_decode(rx_buffer);
+			CLI_decode(rx_buffer);	// Decode command received via CLI
 
 			flag_CRX = 0;
 		}
 
-		if (flag_wrong_cmd != 0)
+		if (flag_wrong_cmd != 0)	// Incorrect command received
 		{
 			UART_TX_string("Wrong command! Available commands: \n\r ");
 			UART_TX_string(AVAILABLE_COMMANDS);

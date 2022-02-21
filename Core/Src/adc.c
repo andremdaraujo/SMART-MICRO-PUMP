@@ -184,7 +184,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {	// Conversions have finished
-	//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 0);
 	flag_EOC = 1;
 }
 

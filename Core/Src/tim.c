@@ -279,10 +279,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim == &htim2)
+	if (htim == &htim2)	// ADC sample time trigger
 	{
-		HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);
-		//flag_dt = 1;
+		//HAL_GPIO_WritePin(OUT_TEST_GPIO_Port, OUT_TEST_Pin, 1);	// Output for profiling
 	}
 	else if(htim == &htim6)	// Timed debounce routine:
 	{					//	After first edge is detected, accumulate

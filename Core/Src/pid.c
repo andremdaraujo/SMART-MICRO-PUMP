@@ -3,7 +3,7 @@
 //	2022/01/28
 //
 //	This library handles PID Control calculations. It was based on
-// 	the algorithm available at wikipedia and also took inspiration
+// 	the algorithm available at Wikipedia and also took inspiration
 // 	on Phil's Lab video available on:
 //	"https://www.youtube.com/watch?v=zOByx3Izf5U".
 //
