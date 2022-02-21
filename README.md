@@ -19,7 +19,7 @@ reading for feedback. The trimpot controls the set point to the pump
 TARGET:
 	STM32L152RB ("STM32L-Discovery" Board)
 
- 	INPUTS:
+INPUTS:
 	User Button:	  PA0 	(Active high, rising and falling edges detection)
 	Pump Current:	  PA3		(Micro pump electrical current)
 	Pump Flow:		  PA4		(Micro pump flow)
